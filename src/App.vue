@@ -35,12 +35,24 @@
         </div>
       </div>
     </div>
+    
+    <button @click="getData">获取数据</button>
+    <button @click="showData">回显数据</button>
   </div>
 </template>
 
 <script>
+const WEEKS = [
+  { label: "星期一", value: "monday" },
+  { label: "星期二", value: "tuesday" },
+  { label: "星期三", value: "wednesday" },
+  { label: "星期四", value: "thursday" },
+  { label: "星期五", value: "friday" },
+  { label: "星期六", value: "saturday" },
+  { label: "星期日", value: "sunday" },
+];
 
-const WEEKS = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
+const WEEKS_VALUE = WEEKS.map(item => item.value)
 
 const HOURS = Array.from({length: 24}, (_, i) => i);
 
@@ -48,7 +60,8 @@ const TIMES = Array.from({length: 48}, (_, i) => i);
 
 const ROWS = WEEKS.map(
  (week, weekIndex) => ({
-    title: week,
+    title: week.label,
+    key: week.value,
     units: TIMES.map((_, timeIndex) => ({ checked: false, position: {x: timeIndex,y: weekIndex} }))
   })
 );
@@ -61,6 +74,41 @@ const ACTION = {
   type: "check" // [check, uncheck]
 }
 
+const DATA_PRESET = {
+  backLiveType: 0,
+  ...(
+    WEEKS_VALUE.reduce(
+      (previous, value) => { previous[value] = []; return previous }, {}
+    )
+  )
+}
+
+const FAKE_DATA = {
+  "backLiveType": 0,
+  "monday": [
+    [0, 3.5]
+  ],
+  "tuesday": [
+    [4.5, 9],
+    [8.5, 14.5]
+  ],
+  "wednesday": [
+    [7.5, 13.5]
+  ],
+  "thursday": [
+    [0, 0.5]
+  ],
+  "friday": [
+    [14, 16.5]
+  ],
+  "saturday": [
+    [23.5, 24]
+  ],
+  "sunday": [
+    [20.5, 24]
+  ]
+}
+
 export default {
   name: 'App',
   data() {
@@ -71,6 +119,46 @@ export default {
     }
   },
   methods: {
+    getData() {
+      const data = JSON.parse(JSON.stringify(DATA_PRESET));
+      this.rows.forEach(row => {
+        const units = row.units;
+        const list = data[row.key];
+        let range = [];
+        units.forEach((unit, unitIndex) => {
+          if (unit.checked) {
+            range.push(unit.position.x)
+          }
+          if (!unit.checked || unitIndex === units.length - 1) {
+            if (range.length) {
+              const start = range[0] / 2;
+              const end = (range[range.length-1] + 1) / 2;
+              list.push([start, end]);
+              range = [];
+            }
+          }
+        })
+      })
+      console.log(data);
+      return data
+    },
+    showData() {
+      // [0, 3.5] => [0, 7]
+      this.rows = JSON.parse(JSON.stringify(ROWS));
+      for (const key in FAKE_DATA) {
+        const weekIndex = WEEKS_VALUE.indexOf(key);
+        if (weekIndex >= 0) {
+          const y = weekIndex;
+          FAKE_DATA[key].forEach(range => {
+            const start = range[0] * 2;
+            const end = range[1] * 2 - 1;
+            for (let x = start; x <= end; x++) {
+              this.rows[y].units[x].checked = true
+            }
+          })
+        }
+      }
+    },
     direction(start, end, target) {
       if (start.x > end.x && start.y > end.y) {
         // console.log("left top");
@@ -130,6 +218,7 @@ export default {
     handleEndCheck() {
       this.checking = false;
     },
+    
   }
 }
 </script>
