@@ -1,19 +1,13 @@
-# vue2-demo
+# timetable
 
-## Project setup
-```
-yarn install
-```
+### a table of time picker based on Vue2
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+## snapshot
 
-### Compiles and minifies for production
-```
-yarn build
-```
+![example.png](public/example.png)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## preview
+
+```bash
+npm run serve
+```
